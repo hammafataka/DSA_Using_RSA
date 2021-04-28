@@ -9,14 +9,13 @@ import java.math.BigInteger;
 import java.util.Random;
 
 public class RSA extends JFrame {
-    Main m=new Main();
-    int p = m.publictemp,
-            q = m.privatetemp,
-            n = 0,
+    static Main m;
+    int p = 0,
+            q =0,
             totient = 0,
             numE = 0,
-            d = 0;
-
+            d = 0,
+            n=0;
     String plaintext = "";
     JTextField enterMessage;
     JLabel labelP;
@@ -29,15 +28,17 @@ public class RSA extends JFrame {
     JTextArea decrypted;
     JButton encrypt;
     JButton decrypt;
+    JButton GetPrivateKey;
+    JButton GetPublicKey;
+
 
     public RSA() {
 
 
-        TitledBorder topBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Enter RSA Values");
-        TitledBorder middleBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Encrypt and Decrypt Message");
+        TitledBorder topBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Encrypt and Decrypt Message");
+        TitledBorder middleBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Enter RSA Values");
         TitledBorder bottomBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "RSA Values");
 
-        //ValueActionListener valueListener = new ValueActionListener();
         MessageActionListener messageListener = new MessageActionListener();
         ButtonActionListener buttonListener = new ButtonActionListener();
 
@@ -63,6 +64,9 @@ public class RSA extends JFrame {
         JLabel spacer1 = new JLabel();
         JLabel spacer2 = new JLabel();
         JLabel spacer3 = new JLabel();
+        GetPublicKey=new JButton("Load Public key");
+        GetPrivateKey=new JButton("Load Private key");
+
 
         bottom.add(labelP);
         bottom.add(labelQ);
@@ -77,11 +81,11 @@ public class RSA extends JFrame {
         bottom.add(labelD);
 
         JPanel Top = new JPanel();
-        Top.setLayout(new GridLayout(2, 3, 10, 10));
+        Top.setLayout(new GridLayout(2, 1, 10, 10));
         Top.setBorder(middleBorder);
 
         enterMessage = new JTextField();
-        JLabel messageLabel = new JLabel("Enter a message");
+        JLabel messageLabel = new JLabel("Enter a message in the next Text box ");
         encrypted = new JTextArea("Encrypted Message:");
         decrypted = new JTextArea("Decrypted Message:");
         encrypt = new JButton("Encrypt Message");
@@ -92,10 +96,12 @@ public class RSA extends JFrame {
         encrypt.addActionListener(buttonListener);
         decrypt.addActionListener(buttonListener);
 
+        Top.add(messageLabel);
         Top.add(enterMessage);
         Middle.add(encrypted);
         Middle.add(encrypt);
-        Top.add(messageLabel);
+        Top.add(GetPublicKey);
+        Top.add(GetPrivateKey);
         Middle.add(decrypted);
         Middle.add(decrypt);
 
@@ -104,14 +110,16 @@ public class RSA extends JFrame {
         add(bottom, BorderLayout.WEST);
         p = GenerateRandom();
         q = GenerateRandom();
-        while (p == q || p < q) {
+
+        while (p==q || p < q) {
 
             q = GenerateRandom();
         }
         labelP.setText("p:    " + p);
         labelQ.setText("q:    " + q);
         if (p != 0 && q != 0) {
-            n = p * q;
+            n= p*q;
+
             labelN.setText("n:    " + n);
             totient = (p - 1) * (q - 1);
             labelTotient.setText("totient:    " + totient);
@@ -119,6 +127,9 @@ public class RSA extends JFrame {
         numE = GenerateRandomE(totient);
         labelE.setText("e:    " + numE);
         calcD();
+        GetPublicKey.addActionListener(e -> {
+
+        });
 
 
     }
@@ -165,19 +176,20 @@ public class RSA extends JFrame {
 
     private static int GenerateRandom() {
         Random rand = new Random();
-        int num = rand.nextInt(1000);
-        while (isPrime(num) || num < 10) {
-            num = rand.nextInt(1000);
+        int num = rand.nextInt(999-700)+700;
+        while (isPrime(num)) {
+            num = rand.nextInt(999-700)+700;
         }
         return num;
+
 
     }
 
     private static int GenerateRandomE(int totient) {
         Random rand = new Random();
-        int num = rand.nextInt(400);
-        while (isPrime(num) || num < 10 || num % totient == 0) {
-            num = rand.nextInt(400);
+        int num = rand.nextInt(999-700)+700;
+        while (isPrime(num) || num % totient == 0) {
+            num = rand.nextInt(999-700)+700;
         }
         return num;
 
@@ -207,7 +219,7 @@ public class RSA extends JFrame {
 
                 c = new int[plaintext.length()];
 
-                BigInteger nBig = new BigInteger(n + "");
+                BigInteger nBig = new BigInteger(n+"");
 
                 StringBuilder ciphertext = new StringBuilder();
                 for (int i = 0; i < m.length; i++) {
@@ -224,7 +236,7 @@ public class RSA extends JFrame {
 
                 for (int j : c) {
                     BigInteger a = new BigInteger(j + "");
-                    BigInteger b = a.pow(d);
+                    BigInteger b =a.pow(d);
                     b = b.mod(nBig);
                     decryptedC.append((char) b.intValue());
                 }

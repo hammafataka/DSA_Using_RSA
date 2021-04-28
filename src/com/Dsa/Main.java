@@ -129,28 +129,21 @@ public class  Main extends JFrame {
                 privatetemp=GenerateRandom();
             }
             CreateFile(publictemp,"public","txt");
+            CreateFile(privatetemp,"private","txt");
             RSA r=new RSA();
-            r.labelP.setText(Integer.toString(publictemp));
-            r.labelQ.setText(Integer.toString(privatetemp));
             r.setSize(800, 350);
             r.setVisible(rootPaneCheckingEnabled);
             r.enterMessage.setText(Hashed);
-
         });
 
         importBtn.addActionListener(e -> {
-
             SelectedFile = GetSelectedFile();
             setFileDetails(SelectedFile);
-
-
-
-
         });
     }
 
 
-    private static File GetSelectedFile(){
+    public static File GetSelectedFile(){
         JFileChooser file=new JFileChooser();
         file.setCurrentDirectory(new File(System.getProperty("user.home")));
         int result=file.showSaveDialog(null);
@@ -165,6 +158,7 @@ public class  Main extends JFrame {
         return selectedFile;
 
     }
+
     public static void setFileDetails(File file){
         try{
             filePath.setText(file.getAbsolutePath());
@@ -190,8 +184,8 @@ public class  Main extends JFrame {
             Modified.setText("Modified: "+sdf.format(file.lastModified()));
             JOptionPane.showMessageDialog(null, Hashed);
         }
-        catch (Exception exception){
-            return;
+        catch (Exception ignored){
+
         }
 
 
@@ -201,11 +195,10 @@ public class  Main extends JFrame {
         JFileChooser file = new JFileChooser();
         file.setCurrentDirectory(new File(System.getProperty("user.home")));
         file.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        File tempfile=new File("");
+        File tempfile;
         if (file.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             File selectedFile=file.getSelectedFile();
-            String stringpath=selectedFile.getAbsolutePath();
-            Path path=Paths.get(stringpath);
+            Path path=Paths.get(selectedFile.getAbsolutePath());
              tempfile=new File(String.format("%s//%s.%s",path,filename,extension));
             try{
                 BufferedWriter bd=new BufferedWriter(new FileWriter(tempfile));
@@ -223,13 +216,14 @@ public class  Main extends JFrame {
     }
 
 
-    private static int GenerateRandom(){
-        Random rand=new Random();
-        int num=rand.nextInt(400);
-        while (!isPrime(num) ||num<10){
-            num=rand.nextInt(400);
+    private static int GenerateRandom() {
+        Random rand = new Random();
+        int num = rand.nextInt(999-700)+700;
+        while (isPrime(num)) {
+            num = rand.nextInt(999-700)+700;
         }
         return num;
+
 
     }
 
