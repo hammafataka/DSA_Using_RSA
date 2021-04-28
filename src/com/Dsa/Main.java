@@ -4,7 +4,6 @@ package com.Dsa;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,28 +22,23 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
-import java.util.logging.Logger;
 
 
 public class  Main extends JFrame {
 
-    private final Logger log = Logger.getLogger(Main.class.getName());
 
-    JTextField filePath;
-    String absolutePath;
-    String Hashed;
-    File pathFile;
+    static JTextField filePath;
+    static String Hashed;
+    File SelectedFile;
     JLabel fileLbl;
     JButton importBtn;
-    String toReturn;
-    Integer pb;
-    Integer pr;
-    JLabel Name;
-    JLabel TypeOfFile;
-    JLabel Location;
-    JLabel size;
-    JLabel Created;
-    JLabel Modified;
+    static String toReturn;
+    static JLabel Name;
+    static JLabel TypeOfFile;
+    static JLabel Location;
+    static JLabel size;
+    static JLabel Created;
+    static JLabel Modified;
     public int publictemp;
     public int privatetemp;
 
@@ -145,46 +139,11 @@ public class  Main extends JFrame {
         });
 
         importBtn.addActionListener(e -> {
-            try {
-                JFileChooser file = new JFileChooser();
-                file.setCurrentDirectory(new File(System.getProperty("user.home")));
-                int result = file.showSaveDialog(null);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = file.getSelectedFile();
-                    absolutePath = selectedFile.getAbsolutePath();
-                    pathFile = new File(absolutePath);
-                    filePath.setText(absolutePath);
-                    String fileName = pathFile.getName();
 
-                    toReturn = readFileAsString(absolutePath);
-                    Name.setText("Name: "+fileName);
-                    TypeOfFile.setText("Type Of File: .txt");
-                    Location.setText("Location: "+absolutePath);
-                    double dsize=(double) pathFile.length()   ;
-                    DecimalFormat df=new DecimalFormat();
-                    df.setMaximumFractionDigits(2);
-                    try{
-                        Path p=pathFile.toPath();
-                        FileTime createdtime=(FileTime) Files.getAttribute(p,"creationTime");
+            SelectedFile = GetSelectedFile();
+            setFileDetails(SelectedFile);
 
-                        Created.setText("Created: "+createdtime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-                    }
-                    catch (IOException ignored) {
 
-                    }
-                    String filesize=df.format(dsize)+" Bytes";
-                    size.setText("Size: "+filesize);
-                    Hashed=hashing(toReturn);
-                    DateFormat sdf=new SimpleDateFormat("MMMM dd, yyyy hh:mm a");
-                    Modified.setText("Modified: "+sdf.format(pathFile.lastModified()));
-                    JOptionPane.showMessageDialog(null, Hashed);
-
-                } else if (result == JFileChooser.CANCEL_OPTION) {
-                    JOptionPane.showMessageDialog(null, "No File Selected", "Failed", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception exception) {
-                log.info(exception.getMessage());
-            }
 
 
         });
@@ -193,7 +152,7 @@ public class  Main extends JFrame {
 
     private static File GetSelectedFile(){
         JFileChooser file=new JFileChooser();
-        file.setCurrentDirectory(new File(System.getProperty("*")));
+        file.setCurrentDirectory(new File(System.getProperty("user.home")));
         int result=file.showSaveDialog(null);
         File selectedFile=new File("");
         if(result==JFileChooser.APPROVE_OPTION){
@@ -204,6 +163,37 @@ public class  Main extends JFrame {
             JOptionPane.showMessageDialog(null, "No File Selected", "Failed", JOptionPane.ERROR_MESSAGE);
         }
         return selectedFile;
+
+    }
+    public static void setFileDetails(File file){
+        try{
+            filePath.setText(file.getAbsolutePath());
+            toReturn = readFileAsString(file.getAbsolutePath());
+            Name.setText("Name: "+file.getName());
+            TypeOfFile.setText("Type Of File: .txt");
+            Location.setText("Location: "+file.getAbsolutePath());
+            double dsize=(double) file.length()   ;
+            DecimalFormat df=new DecimalFormat();
+            df.setMaximumFractionDigits(2);
+            try{
+                FileTime createdtime=(FileTime)Files.getAttribute(file.toPath(),"creationTime");
+                 Created.setText("Created: "+createdtime.toInstant().atZone(ZoneId.systemDefault()).
+                         format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+            }
+            catch (IOException e) {
+                return;
+            }
+            String filesize=df.format(dsize)+" Bytes";
+            size.setText("Size: "+filesize);
+            Hashed=hashing(toReturn);
+            DateFormat sdf=new SimpleDateFormat("MMMM dd, yyyy hh:mm a");
+            Modified.setText("Modified: "+sdf.format(file.lastModified()));
+            JOptionPane.showMessageDialog(null, Hashed);
+        }
+        catch (Exception exception){
+            return;
+        }
+
 
     }
 
