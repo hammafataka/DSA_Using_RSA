@@ -6,7 +6,9 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,6 +22,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 import java.util.logging.Logger;
 
 
@@ -29,18 +32,21 @@ public class  Main extends JFrame {
 
     JTextField filePath;
     String absolutePath;
-    public String Hashed;
+    String Hashed;
     File pathFile;
     JLabel fileLbl;
     JButton importBtn;
-    public String toReturn;
-
+    String toReturn;
+    Integer pb;
+    Integer pr;
     JLabel Name;
     JLabel TypeOfFile;
     JLabel Location;
     JLabel size;
     JLabel Created;
     JLabel Modified;
+    public int publictemp;
+    public int privatetemp;
 
     JLabel GenerateKeys;
     JButton Generate;
@@ -108,8 +114,7 @@ public class  Main extends JFrame {
                             Hashed=hashing(toReturn);
                             DateFormat sdf=new SimpleDateFormat("MMMM dd, yyyy hh:mm a");
                             Modified.setText("Modified: "+sdf.format(pathFile.lastModified()));
-                           //JOptionPane.showMessageDialog(null, Hashed);
-                            System.out.println(Hashed);
+                           JOptionPane.showMessageDialog(null, Hashed);
 
                         } else if (result == JFileChooser.CANCEL_OPTION) {
                             JOptionPane.showMessageDialog(null, "No File Selected", "Failed", JOptionPane.ERROR_MESSAGE);
@@ -117,6 +122,8 @@ public class  Main extends JFrame {
                     } catch (Exception exception) {
                         log.info(exception.getMessage());
                     }
+
+
                 });
 
         JPanel FileDescriptions = new JPanel();
@@ -143,9 +150,26 @@ public class  Main extends JFrame {
         GenerateKeys = new JLabel("Generate a Public/Private Key Pair");
         Generate = new JButton("Generate");
         Generate.addActionListener(e -> {
+            publictemp=GenerateRandom();
+            privatetemp=GenerateRandom();
+            while (publictemp==privatetemp||publictemp<privatetemp){
+
+                privatetemp=GenerateRandom();
+
+
+            }
+
+            File tempfile=selectfile();
+            GenerateFile(tempfile,publictemp);
+
+
             RSA r=new RSA();
+            r.labelP.setText(Integer.toString(publictemp));
+            r.labelQ.setText(Integer.toString(privatetemp));
+            r.setSize(800, 350);
             r.setVisible(rootPaneCheckingEnabled);
-            r.enterMessage.setText(toReturn);
+            r.enterMessage.setText(Hashed);
+
 
         });
         PublicKey = new JLabel("Public Key");
@@ -174,7 +198,52 @@ public class  Main extends JFrame {
         add(FileDescriptions, BorderLayout.CENTER);
         add(KeyDetails, BorderLayout.SOUTH);
 
+
     }
+    private static void GenerateFile(File file,int toWrite){
+
+        try{
+            BufferedWriter bd=new BufferedWriter(new FileWriter(file));
+            bd.write(String.format("%d",toWrite));
+            bd.close();
+        }catch (Exception ex){
+            JOptionPane.showMessageDialog(null,ex.getMessage());
+        }
+
+    }
+    private static File  selectfile(){
+        JFileChooser file = new JFileChooser();
+        file.setCurrentDirectory(new File(System.getProperty("user.home")));
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("DSA", ".txt");
+        file.addChoosableFileFilter(filter);
+        file.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int result = 0;//file.showSaveDialog(null);
+        File tempfile=new File("");
+        if (file.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            File selectedFile=file.getSelectedFile();
+            String stringpath=selectedFile.getAbsolutePath();
+            Path path=Paths.get(stringpath);
+             tempfile=new File(String.format("%s//public.txt",path));
+
+
+
+
+
+        } else if (result == JFileChooser.CANCEL_OPTION) {
+            JOptionPane.showMessageDialog(null, "No File Selected", "Failed", JOptionPane.ERROR_MESSAGE);
+        }
+        return tempfile;
+    }
+    private static int GenerateRandom(){
+        Random rand=new Random();
+        int num=rand.nextInt(400);
+        while (!isPrime(num) ||num<10){
+            num=rand.nextInt(400);
+        }
+        return num;
+
+    }
+
     public static String hashing  (String input ) throws NoSuchAlgorithmException {
         final MessageDigest digest = MessageDigest.getInstance("SHA3-512");
         final byte[] hashbytes = digest.digest(
@@ -198,6 +267,15 @@ public class  Main extends JFrame {
         }
         return hexString.toString();
     }
+    private static boolean isPrime(int inputNum){
+        if (inputNum <= 3 || inputNum % 2 == 0)
+            return inputNum == 2 || inputNum == 3;
+        int divisor = 3;
+        while ((divisor <= Math.sqrt(inputNum)) && (inputNum % divisor != 0))
+            divisor += 2;
+        return inputNum % divisor != 0;
+    }
+
     public static void main(String[] args){
         Main frame = new Main();
         frame.setTitle("DSA");
@@ -207,5 +285,6 @@ public class  Main extends JFrame {
 
 
     }
+
 }
 
