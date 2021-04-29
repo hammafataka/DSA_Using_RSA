@@ -3,20 +3,21 @@ package com.Dsa;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.io.File;
 import java.math.BigInteger;
 import java.util.Random;
 
 public class RSA extends JFrame {
-    static Main m;
+    static Main mainpage ;
     int p = 0,
             q =0,
             totient = 0,
             numE = 0,
             d = 0,
             n=0;
+    static int[] c;
     String plaintext = "";
+    public static StringBuilder ciphertext;
     JTextField enterMessage;
     JLabel labelP;
     JLabel labelQ;
@@ -30,6 +31,8 @@ public class RSA extends JFrame {
     JButton decrypt;
     JButton GetPrivateKey;
     JButton GetPublicKey;
+    JButton GenerateRandom;
+    public static String TransferedData;
 
 
     public RSA() {
@@ -39,8 +42,7 @@ public class RSA extends JFrame {
         TitledBorder middleBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Enter RSA Values");
         TitledBorder bottomBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "RSA Values");
 
-        MessageActionListener messageListener = new MessageActionListener();
-        ButtonActionListener buttonListener = new ButtonActionListener();
+
 
         setLayout(new BorderLayout(20, 30));
 
@@ -90,26 +92,95 @@ public class RSA extends JFrame {
         decrypted = new JTextArea("Decrypted Message:");
         encrypt = new JButton("Encrypt Message");
         decrypt = new JButton("Decrypt Message");
+        GenerateRandom=new JButton("Generate random keys");
 
 
-        enterMessage.addActionListener(messageListener);
-        encrypt.addActionListener(buttonListener);
-        decrypt.addActionListener(buttonListener);
+
 
         Top.add(messageLabel);
         Top.add(enterMessage);
         Middle.add(encrypted);
         Middle.add(encrypt);
+        Top.add(new JLabel("By Default Keys are 0. press Generate to Generate Randomly"));
         Top.add(GetPublicKey);
         Top.add(GetPrivateKey);
+        Top.add(GenerateRandom);
         Middle.add(decrypted);
         Middle.add(decrypt);
 
         add(Middle, BorderLayout.CENTER);
         add(Top, BorderLayout.NORTH);
         add(bottom, BorderLayout.WEST);
-        p = GenerateRandom();
-        q = GenerateRandom();
+
+
+        encrypt.addActionListener(e -> {
+            plaintext = enterMessage.getText();
+            int[] m = new int[plaintext.length()];
+            for (int i = 0; i < plaintext.length(); i++) {
+                m[i] = plaintext.charAt(i);
+            }
+
+            c = new int[plaintext.length()];
+
+            BigInteger nBig = new BigInteger(n+"");
+
+                ciphertext = new StringBuilder();
+            for (int i = 0; i < m.length; i++) {
+                BigInteger a = new BigInteger(m[i] + "");
+                BigInteger b = a.pow(numE);
+                b = b.mod(nBig);
+                c[i] = b.intValue();
+                ciphertext.append(c[i]);
+            }
+            encrypted.setText("Encrypted Message: " + ciphertext);
+            int result=JOptionPane.showConfirmDialog(null,"Do you want save the file?","Save",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
+            if(result==JOptionPane.YES_OPTION){
+                mainpage.CreateFile(ciphertext.toString(),"file","sign");
+                mainpage.CreateFile(TransferedData,"data","txt");
+            }
+        });
+
+
+        decrypt.addActionListener(e -> {
+            BigInteger nBig = new BigInteger(n + "");
+            StringBuilder decryptedC = new StringBuilder();
+
+            for (int j : c) {
+                BigInteger a = new BigInteger(j + "");
+                BigInteger b =a.pow(d);
+                b = b.mod(nBig);
+                decryptedC.append((char) b.intValue());
+            }
+            decrypted.setText("Decrypted Message: " + decryptedC);
+        });
+
+
+
+
+        GetPublicKey.addActionListener(e -> {
+
+            File Temp= mainpage.GetSelectedFile();
+            p=Integer.parseInt(mainpage.setFileDetails(Temp));
+            labelP.setText("p:    " + p);
+
+
+        });
+        GetPrivateKey.addActionListener(e -> {
+
+            File Temp= mainpage.GetSelectedFile();
+            q=Integer.parseInt(mainpage.setFileDetails(Temp));
+            labelQ.setText("q:    " + q);
+            getkeys(p,q);
+        });
+        GenerateRandom.addActionListener(e -> {
+            p = GenerateRandom();
+            q = GenerateRandom();
+            getkeys(p,q);
+        });
+
+
+    }
+    private void getkeys(int p,int q){
 
         while (p==q || p < q) {
 
@@ -127,11 +198,6 @@ public class RSA extends JFrame {
         numE = GenerateRandomE(totient);
         labelE.setText("e:    " + numE);
         calcD();
-        GetPublicKey.addActionListener(e -> {
-
-        });
-
-
     }
 
 
@@ -176,9 +242,9 @@ public class RSA extends JFrame {
 
     private static int GenerateRandom() {
         Random rand = new Random();
-        int num = rand.nextInt(999-700)+700;
+        int num = rand.nextInt(999-500)+500;
         while (isPrime(num)) {
-            num = rand.nextInt(999-700)+700;
+            num = rand.nextInt(999-500)+500;
         }
         return num;
 
@@ -187,68 +253,20 @@ public class RSA extends JFrame {
 
     private static int GenerateRandomE(int totient) {
         Random rand = new Random();
-        int num = rand.nextInt(999-700)+700;
+        int num = rand.nextInt(799-500)+500;
         while (isPrime(num) || num % totient == 0) {
-            num = rand.nextInt(999-700)+700;
+            num = rand.nextInt(799-500)+500;
         }
         return num;
 
     }
 
-    private class MessageActionListener implements ActionListener {
 
-        @Override
-        public void actionPerformed(ActionEvent event) {
-            plaintext = enterMessage.getText();
-
-        }
-    }
-
-    private class ButtonActionListener implements ActionListener {
-
-        int[] c;
-
-        @Override
-        public void actionPerformed(ActionEvent event) {
-            if (event.getSource() == encrypt) {
-                plaintext = enterMessage.getText();
-                int[] m = new int[plaintext.length()];
-                for (int i = 0; i < plaintext.length(); i++) {
-                    m[i] = plaintext.charAt(i);
-                }
-
-                c = new int[plaintext.length()];
-
-                BigInteger nBig = new BigInteger(n+"");
-
-                StringBuilder ciphertext = new StringBuilder();
-                for (int i = 0; i < m.length; i++) {
-                    BigInteger a = new BigInteger(m[i] + "");
-                    BigInteger b = a.pow(numE);
-                    b = b.mod(nBig);
-                    c[i] = b.intValue();
-                    ciphertext.append(c[i]);
-                }
-                encrypted.setText("Encrypted Message: " + ciphertext);
-            } else {
-                BigInteger nBig = new BigInteger(n + "");
-                StringBuilder decryptedC = new StringBuilder();
-
-                for (int j : c) {
-                    BigInteger a = new BigInteger(j + "");
-                    BigInteger b =a.pow(d);
-                    b = b.mod(nBig);
-                    decryptedC.append((char) b.intValue());
-                }
-                decrypted.setText("Decrypted Message: " + decryptedC);
-            }
-        }
-    }
 
     public static void main(String[] args) {
         RSA frame = new RSA();
         frame.setTitle("RSA Encryption");
-        frame.setSize(800, 350);
+        frame.setSize(1100, 350);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);

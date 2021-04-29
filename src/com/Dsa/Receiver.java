@@ -6,6 +6,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -29,6 +31,7 @@ static JLabel Modified;
 static File s;
 static String toReturn;
 static JTextArea message;
+static JButton getFile;
 
 
     public Receiver(){
@@ -39,7 +42,7 @@ static JTextArea message;
         setLayout(new BorderLayout(50,30));
 
         JPanel buttonPanel=new JPanel();
-        buttonPanel.setLayout(new GridLayout(2,1,30,10));
+        buttonPanel.setLayout(new GridLayout(3,0,30,10));
         buttonPanel.setBorder(buttonBorders);
 
         JPanel filePanel=new JPanel();
@@ -61,6 +64,7 @@ static JTextArea message;
         Created = new JLabel("Created:");
         Modified = new JLabel("Modified");
         message=new JTextArea();
+        getFile=new JButton("Get File From path");
 
         filepath=new JTextField();
         browse=new JButton("Browse");
@@ -72,6 +76,7 @@ static JTextArea message;
 
         buttonPanel.add(browse);
         buttonPanel.add(Decrypt);
+        buttonPanel.add(getFile);
 
         filePanel.add(Name);
         filePanel.add(TypeOfFile);
@@ -89,7 +94,7 @@ static JTextArea message;
 
 
         browse.addActionListener(e -> {
-            m=new Main();
+
              s=m.GetSelectedFile();
             setFileDetails(s);
             message.setText(toReturn);
@@ -100,6 +105,12 @@ static JTextArea message;
             r.setSize(800, 350);
             r.setVisible(rootPaneCheckingEnabled);
             r.enterMessage.setText(toReturn);
+        });
+        getFile.addActionListener(e -> {
+            String path=filepath.getText();
+            File file=new File(String.format("%s",path));
+            setFileDetails(file);
+            message.setText(toReturn);
         });
 
     }

@@ -26,7 +26,9 @@ import java.util.Random;
 
 public class  Main extends JFrame {
 
-
+    Receiver re;
+    RSA r;
+    static int keynum;
     static JTextField filePath;
     static String Hashed;
     File SelectedFile;
@@ -39,8 +41,8 @@ public class  Main extends JFrame {
     static JLabel size;
     static JLabel Created;
     static JLabel Modified;
-    public int publictemp;
-    public int privatetemp;
+    public Integer publictemp;
+    public Integer privatetemp;
 
     JLabel GenerateKeys;
     JButton Generate;
@@ -48,9 +50,8 @@ public class  Main extends JFrame {
     JLabel PrivateKey;
     JTextField pField;
     JTextField qField;
-    JButton pSave;
+    JButton Hash;
     JButton pLoad;
-    JButton qSave;
     JButton qLoad;
     JButton signature;
 
@@ -95,15 +96,14 @@ public class  Main extends JFrame {
         KeyDetails.setBorder(KeyDetailsBorders);
 
         GenerateKeys = new JLabel("Generate a Public/Private Key Pair");
-        Generate = new JButton("Generate");
+        Generate = new JButton("Generate random keys and sign file");
         PublicKey = new JLabel("Public Key");
         PrivateKey = new JLabel("Private Key");
         pField = new JTextField();
         qField = new JTextField();
-        pSave = new JButton("Save");
-        pLoad = new JButton("Load");
-        qSave = new JButton("Save");
-        qLoad = new JButton("Load");
+        Hash = new JButton("Sign File");
+        pLoad = new JButton("Save Entered key");
+        qLoad = new JButton("Save Entered key");
         signature = new JButton("Create Signature");
 
         KeyDetails.add(GenerateKeys);
@@ -112,9 +112,7 @@ public class  Main extends JFrame {
         KeyDetails.add(PrivateKey);
         KeyDetails.add(pField);
         KeyDetails.add(qField);
-        KeyDetails.add(pSave);
-        KeyDetails.add(qSave);
-
+        KeyDetails.add(Hash);
         KeyDetails.add(pLoad);
         KeyDetails.add(qLoad);
 
@@ -122,23 +120,52 @@ public class  Main extends JFrame {
         add(FileDescriptions, BorderLayout.CENTER);
         add(KeyDetails, BorderLayout.SOUTH);
 
+
+        re=new Receiver();
+        re.setSize(800, 350);
+        re.setVisible(rootPaneCheckingEnabled);
         Generate.addActionListener(e -> {
             publictemp=GenerateRandom();
             privatetemp=GenerateRandom();
             while (publictemp==privatetemp||publictemp<privatetemp){
                 privatetemp=GenerateRandom();
             }
-            CreateFile(publictemp,"public","txt");
-            CreateFile(privatetemp,"private","txt");
-            RSA r=new RSA();
-            r.setSize(800, 350);
-            r.setVisible(rootPaneCheckingEnabled);
-            r.enterMessage.setText(Hashed);
+            CreateFile(publictemp.toString(),"public","publ");
+            boolean confirm =CreateFile(privatetemp.toString(),"private","priv");
+            if(confirm){
+                 r=new RSA();
+                r.setSize(800, 350);
+                r.setVisible(rootPaneCheckingEnabled);
+                r.enterMessage.setText(Hashed);
+                r.TransferedData=Hashed;
+            }
+
         });
 
         importBtn.addActionListener(e -> {
             SelectedFile = GetSelectedFile();
             setFileDetails(SelectedFile);
+        });
+        pLoad.addActionListener(e -> {
+            CreateFile(pField.getText(),"public","publ");
+
+        });
+        qLoad.addActionListener(e -> {
+            CreateFile(qField.getText(),"private","priv");
+
+        });
+        Hash.addActionListener(e -> {
+            if(keynum>=2){
+                r=new RSA();
+                r.setSize(800, 350);
+                r.setVisible(rootPaneCheckingEnabled);
+                r.enterMessage.setText(Hashed);
+                r.TransferedData=Hashed;
+            }
+            else {
+                JOptionPane.showMessageDialog(null,"Please first save key or generate randomly","Error",JOptionPane.ERROR_MESSAGE);
+            }
+
         });
     }
 
@@ -159,7 +186,7 @@ public class  Main extends JFrame {
 
     }
 
-    public static void setFileDetails(File file){
+    public static String setFileDetails(File file){
         try{
             filePath.setText(file.getAbsolutePath());
             toReturn = readFileAsString(file.getAbsolutePath());
@@ -175,23 +202,26 @@ public class  Main extends JFrame {
                          format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
             }
             catch (IOException e) {
-                return;
+                return "";
             }
             String filesize=df.format(dsize)+" Bytes";
             size.setText("Size: "+filesize);
             Hashed=hashing(toReturn);
             DateFormat sdf=new SimpleDateFormat("MMMM dd, yyyy hh:mm a");
             Modified.setText("Modified: "+sdf.format(file.lastModified()));
-            JOptionPane.showMessageDialog(null, Hashed);
+            //JOptionPane.showMessageDialog(null, Hashed);
+            return toReturn;
         }
         catch (Exception ignored){
 
         }
 
-
+        return  toReturn;
     }
 
-    private static void CreateFile(int toWrite,String filename,String extension){
+    public static boolean CreateFile(String toWrite,String filename,String extension){
+        keynum++;
+        boolean success=false;
         JFileChooser file = new JFileChooser();
         file.setCurrentDirectory(new File(System.getProperty("user.home")));
         file.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -202,25 +232,27 @@ public class  Main extends JFrame {
              tempfile=new File(String.format("%s//%s.%s",path,filename,extension));
             try{
                 BufferedWriter bd=new BufferedWriter(new FileWriter(tempfile));
-                bd.write(String.format("%d",toWrite));
+                bd.write(String.format("%s",toWrite));
                 bd.close();
             }
             catch (Exception ex){
                 JOptionPane.showMessageDialog(null,ex.getMessage());
             }
+            return success=true;
 
         }
         else{
             JOptionPane.showMessageDialog(null, "No Directory Selected", "Failed", JOptionPane.ERROR_MESSAGE);
+            return success=false;
         }
     }
 
 
     private static int GenerateRandom() {
         Random rand = new Random();
-        int num = rand.nextInt(999-700)+700;
-        while (isPrime(num)) {
-            num = rand.nextInt(999-700)+700;
+        int num = rand.nextInt(899-500)+500;
+        while (!isPrime(num)) {
+            num = rand.nextInt(899-500)+500;
         }
         return num;
 
