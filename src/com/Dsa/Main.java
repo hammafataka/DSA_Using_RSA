@@ -28,6 +28,12 @@ public class  Main extends JFrame {
 
     Receiver re;
     RSA r;
+    int p = 0,
+            q =0,
+            totient = 0,
+            numE = 0,
+            d = 0,
+            n=0;
     static int keynum;
     static JTextField filePath;
     static String Hashed;
@@ -125,20 +131,14 @@ public class  Main extends JFrame {
         re.setSize(800, 350);
         re.setVisible(rootPaneCheckingEnabled);
         Generate.addActionListener(e -> {
-            publictemp=GenerateRandom();
-            privatetemp=GenerateRandom();
-            while (publictemp==privatetemp||publictemp<privatetemp){
-                privatetemp=GenerateRandom();
-            }
-            CreateFile(publictemp.toString(),"public","publ");
-            boolean confirm =CreateFile(privatetemp.toString(),"private","priv");
-            if(confirm){
-                 r=new RSA();
-                r.setSize(800, 350);
-                r.setVisible(rootPaneCheckingEnabled);
-                r.enterMessage.setText(Hashed);
-                r.TransferedData=Hashed;
-            }
+            p = GenerateRandom();
+            q = GenerateRandom();
+            getkeys(p,q);
+            String hamma =numE+","+n;
+            CreateFile(hamma,"private","priv");
+            String pu=d+","+n;
+            boolean confirm=CreateFile(pu,"public","publ");
+
 
         });
 
@@ -156,6 +156,10 @@ public class  Main extends JFrame {
         });
         Hash.addActionListener(e -> {
             if(keynum>=2){
+                int con=JOptionPane.showConfirmDialog(null,"Do you want to close here?","Close",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
+                if(con==JOptionPane.YES_OPTION){
+                    this.dispose();
+                }
                 r=new RSA();
                 r.setSize(800, 350);
                 r.setVisible(rootPaneCheckingEnabled);
@@ -185,7 +189,50 @@ public class  Main extends JFrame {
         return selectedFile;
 
     }
+    private void getkeys(int p,int q){
 
+        while (p==q || p < q) {
+
+            q = GenerateRandom();
+        }
+        if (p != 0 && q != 0) {
+            n= p*q;
+            totient = (p - 1) * (q - 1);
+        }
+        numE = GenerateRandomE(totient);
+        calcD();
+    }
+
+
+    private void calcD() {
+        int s = 0,
+                t = 1,
+                olds = 1,
+                oldt = 0,
+                r = numE,
+                oldr = totient;
+        while (r != 1) {
+            int quotient = oldr / r;
+            int temp = r;
+            r = oldr % r;
+            oldr = temp;
+            temp = s;
+            s = olds - quotient * s;
+            olds = temp;
+
+            temp = t;
+            t = oldt - quotient * t;
+            oldt = temp;
+        }
+
+        if (t < 0) {
+            d = totient + t;
+        } else {
+            d = t;
+        }
+
+
+    }
     public static String setFileDetails(File file){
         try{
             filePath.setText(file.getAbsolutePath());
@@ -218,7 +265,6 @@ public class  Main extends JFrame {
 
         return  toReturn;
     }
-
     public static boolean CreateFile(String toWrite,String filename,String extension){
         keynum++;
         boolean success=false;
@@ -248,14 +294,33 @@ public class  Main extends JFrame {
     }
 
 
+    private static boolean isPrime(int inputNum) {
+        if (inputNum <= 3 || inputNum % 2 == 0)
+            return inputNum != 2 && inputNum != 3;
+        int divisor = 3;
+        while ((divisor <= Math.sqrt(inputNum)) && (inputNum % divisor != 0))
+            divisor += 2;
+        return inputNum % divisor == 0;
+    }
+
     private static int GenerateRandom() {
         Random rand = new Random();
-        int num = rand.nextInt(899-500)+500;
-        while (!isPrime(num)) {
-            num = rand.nextInt(899-500)+500;
+        int num = rand.nextInt(999-500)+000;
+        while (isPrime(num)) {
+            num = rand.nextInt(999-500)+500;
         }
         return num;
 
+
+    }
+
+    private static int GenerateRandomE(int totient) {
+        Random rand = new Random();
+        int num = rand.nextInt(799-500)+500;
+        while (isPrime(num) || num % totient == 0) {
+            num = rand.nextInt(799-500)+500;
+        }
+        return num;
 
     }
 
@@ -281,14 +346,6 @@ public class  Main extends JFrame {
             hexString.append(hex);
         }
         return hexString.toString();
-    }
-    private static boolean isPrime(int inputNum){
-        if (inputNum <= 3 || inputNum % 2 == 0)
-            return inputNum == 2 || inputNum == 3;
-        int divisor = 3;
-        while ((divisor <= Math.sqrt(inputNum)) && (inputNum % divisor != 0))
-            divisor += 2;
-        return inputNum % divisor != 0;
     }
 
     public static void main(String[] args){

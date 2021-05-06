@@ -5,6 +5,10 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.io.File;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class RSA extends JFrame {
@@ -127,7 +131,7 @@ public class RSA extends JFrame {
                 ciphertext = new StringBuilder();
             for (int i = 0; i < m.length; i++) {
                 BigInteger a = new BigInteger(m[i] + "");
-                BigInteger b = a.pow(numE);
+                BigInteger b = a.pow(d);
                 b = b.mod(nBig);
                 c[i] = b.intValue();
                 ciphertext.append(c[i]);
@@ -137,6 +141,12 @@ public class RSA extends JFrame {
             if(result==JOptionPane.YES_OPTION){
                 mainpage.CreateFile(ciphertext.toString(),"file","sign");
                 mainpage.CreateFile(TransferedData,"data","txt");
+                int con=JOptionPane.showConfirmDialog(null,"Do you want to close here ?","Close",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
+                if(con==JOptionPane.YES_OPTION){
+                    this.dispose();
+
+                }
+
             }
         });
 
@@ -147,7 +157,7 @@ public class RSA extends JFrame {
 
             for (int j : c) {
                 BigInteger a = new BigInteger(j + "");
-                BigInteger b =a.pow(d);
+                BigInteger b =a.pow(numE);
                 b = b.mod(nBig);
                 decryptedC.append((char) b.intValue());
             }
@@ -158,19 +168,49 @@ public class RSA extends JFrame {
 
 
         GetPublicKey.addActionListener(e -> {
-
             File Temp= mainpage.GetSelectedFile();
-            p=Integer.parseInt(mainpage.setFileDetails(Temp));
-            labelP.setText("p:    " + p);
+            String milad="";
+            try {
+                milad =readFileAsString(Temp.getAbsolutePath());
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+            milad = milad.replaceAll("[^-?0-9]+", " ");
+            List<String> nums= Arrays.asList(milad.trim().split(" "));
+            String[] itemsArray = new String[nums.size()];
+            itemsArray = nums.toArray(itemsArray);
+            int size = itemsArray.length;
+            int [] arr = new int [size];
+            for(int i=0; i<size; i++) {
+                arr[i] = Integer.parseInt(itemsArray[i]);
+            }
+            numE=arr[0];
+            n=arr[1];
+
 
 
         });
         GetPrivateKey.addActionListener(e -> {
 
             File Temp= mainpage.GetSelectedFile();
-            q=Integer.parseInt(mainpage.setFileDetails(Temp));
-            labelQ.setText("q:    " + q);
-            getkeys(p,q);
+            String milad="";
+            try {
+                 milad =readFileAsString(Temp.getAbsolutePath());
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+            milad = milad.replaceAll("[^-?0-9]+", " ");
+            List<String> nums= Arrays.asList(milad.trim().split(" "));
+            String[] itemsArray = new String[nums.size()];
+            itemsArray = nums.toArray(itemsArray);
+            int size = itemsArray.length;
+            int [] arr = new int [size];
+            for(int i=0; i<size; i++) {
+                arr[i] = Integer.parseInt(itemsArray[i]);
+            }
+            d=arr[0];
+            n=arr[1];
+
         });
         GenerateRandom.addActionListener(e -> {
             p = GenerateRandom();
@@ -179,6 +219,12 @@ public class RSA extends JFrame {
         });
 
 
+    }
+    public static String readFileAsString(String fileName)throws Exception
+    {
+        var data = "";
+        data = new String(Files.readAllBytes(Paths.get(fileName)));
+        return data;
     }
     private void getkeys(int p,int q){
 
@@ -242,7 +288,7 @@ public class RSA extends JFrame {
 
     private static int GenerateRandom() {
         Random rand = new Random();
-        int num = rand.nextInt(999-500)+500;
+        int num = rand.nextInt(999-500)+000;
         while (isPrime(num)) {
             num = rand.nextInt(999-500)+500;
         }

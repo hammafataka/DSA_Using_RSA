@@ -101,6 +101,10 @@ static JButton getFile;
         });
 
         Decrypt.addActionListener(e -> {
+            int con=JOptionPane.showConfirmDialog(null,"Do you want to close here?","Close",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
+            if(con==JOptionPane.YES_OPTION){
+                this.dispose();
+            }
             r=new RSA();
             r.setSize(800, 350);
             r.setVisible(rootPaneCheckingEnabled);
